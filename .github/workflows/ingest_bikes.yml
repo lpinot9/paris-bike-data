@@ -1,0 +1,31 @@
+name: Ingest Paris Bike Traffic
+
+on:
+  schedule:
+    # Tourne chaque heure à la minute 0 (ex: 13:00, 14:00, etc.)
+    - cron: '0 * * * *'
+  # Déclenchement manuel possible depuis l'onglet Actions
+  workflow_dispatch:
+
+jobs:
+  run-ingestion:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le code du dépôt
+        uses: actions/checkout@v4
+
+      - name: Configurer l'environnement Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installer les dépendances
+        run: |
+          pip install requests
+
+      - name: Exécuter le script d'ingestion
+        env:
+          FIVETRAN_WEBHOOK_URL: ${{ secrets.FIVETRAN_WEBHOOK_URL }}
+        run: |
+          python scripts/extract_and_push.py
