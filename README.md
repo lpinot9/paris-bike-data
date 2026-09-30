@@ -30,6 +30,7 @@ Pipeline de données automatisé analysant le trafic cycliste parisien à partir
         │
         ▼
  [Looker Studio / BI Dashboard]
+```
 
 ## 🎯 Objectifs & Enjeux Métier
 
