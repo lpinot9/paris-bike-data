@@ -3,8 +3,11 @@ import sys
 import json
 import requests
 
-from dotenv import load_dotenv
-load_dotenv()  # Charge automatiquement les variables définies dans .env
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ModuleNotFoundError:
+    pass
 
 # Récupération de l'URL via variable d'environnement (sécurité)
 FIVETRAN_WEBHOOK_URL = os.environ.get("FIVETRAN_WEBHOOK_URL")
