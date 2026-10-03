@@ -1,0 +1,23 @@
+version: 2
+
+sources:
+  - name: raw_bike_traffic
+    description: "Données brutes issues de l'API Open Data Paris, ingérées via Webhook Fivetran."
+    database: BIKE_MOBILITY
+    schema: WEBHOOKS
+    tables:
+      - name: FIVETRAN_BIKE_WEBHOOKS_STAGE 
+        description: "Enregistrements horaires bruts des compteurs vélos de la ville de Paris."
+        columns:
+          - name: ID_COMPTEUR
+            description: "Identifiant technique du compteur vélo."
+            tests:
+              - not_null
+          - name: DATE
+            description: "Horodatage ISO de l'heure de comptage."
+            tests:
+              - not_null
+          - name: SUM_COUNTS
+            description: "Nombre total de vélos comptabilisés sur l'heure."
+            tests:
+              - not_null

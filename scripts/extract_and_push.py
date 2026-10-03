@@ -3,6 +3,9 @@ import sys
 import json
 import requests
 
+from dotenv import load_dotenv
+load_dotenv()  # Charge automatiquement les variables définies dans .env
+
 # Récupération de l'URL via variable d'environnement (sécurité)
 FIVETRAN_WEBHOOK_URL = os.environ.get("FIVETRAN_WEBHOOK_URL")
 
@@ -35,9 +38,10 @@ def run():
     # Normalisation du payload JSON pour Fivetran
     payload = []
     for row in records:
-        coords = row.get("coordonnees_geo") or {}
-        lat = coords.get("lat") if isinstance(coords, dict) else (coords[0] if isinstance(coords, list) and len(coords) > 0 else None)
-        lon = coords.get("lon") if isinstance(coords, dict) else (coords[1] if isinstance(coords, list) and len(coords) > 1 else None)
+        coords = row.get("coordinates") or {}
+        
+        lat = coords.get("lat")
+        lon = coords.get("lon")
 
         payload.append({
             "id_compteur": row.get("id_compteur"),

@@ -232,3 +232,5 @@ profiles.yml
 *.pem
 credentials.json
 service_account.json
+
+scripts/test_payload.py
