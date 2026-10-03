@@ -1,75 +1,68 @@
 import os
-import sys
-import json
 import requests
+from datetime import datetime, timedelta
 
+# Gestion transparente de l'environnement local vs GitHub Actions
 try:
     from dotenv import load_dotenv
     load_dotenv()
 except ModuleNotFoundError:
     pass
 
-# Récupération de l'URL via variable d'environnement (sécurité)
-FIVETRAN_WEBHOOK_URL = os.environ.get("FIVETRAN_WEBHOOK_URL")
-
-if not FIVETRAN_WEBHOOK_URL:
-    print("Erreur : la variable FIVETRAN_WEBHOOK_URL est absente.")
-    sys.exit(1)
-
-PARIS_API_URL = (
-    "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/"
-    "comptage-velo-donnees-compteurs/records"
-    "?limit=100&order_by=date%20desc"
-)
-
-def run():
-    print("1. Appel à l'API Paris Open Data...")
-    try:
-        res = requests.get(PARIS_API_URL, timeout=30)
-        res.raise_for_status()
-    except requests.RequestException as e:
-        print(f"Erreur lors de la requête Open Data : {e}")
-        sys.exit(1)
-
-    records = res.json().get("results", [])
-    print(f"2. {len(records)} enregistrements récupérés.")
-
-    if not records:
-        print("Aucune donnée disponible.")
+def main():
+    # 1. Définition de la fenêtre temporelle temporelle (J-1)
+    hier = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+    aujourdhui = datetime.now().strftime('%Y-%m-%d')
+    where_clause = f"date >= '{hier}' AND date < '{aujourdhui}'"
+    
+    # 2. Appel de l'API avec le filtre
+    url = "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/comptage-velo-donnees-compteurs/exports/json"
+    params = {
+        "where": where_clause
+    }
+    
+    print(f"Extraction des données depuis l'API pour la période : {where_clause}")
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    
+    raw_records = response.json()
+    print(f"{len(raw_records)} lignes récupérées.")
+    
+    if not raw_records:
+        print("Aucune donnée à traiter. Fin du script.")
         return
 
-    # Normalisation du payload JSON pour Fivetran
-    payload = []
-    for row in records:
-        coords = row.get("coordinates") or {}
+    # 3. Traitement et aplatissement des coordonnées
+    cleaned_records = []
+    for record in raw_records:
+        coords = record.get("coordinates") or {}
         
-        lat = coords.get("lat")
-        lon = coords.get("lon")
-
-        payload.append({
-            "id_compteur": row.get("id_compteur"),
-            "nom_compteur": row.get("nom_compteur"),
-            "id": row.get("id"),
-            "date": row.get("date"),
-            "sum_counts": row.get("sum_counts"),
-            "latitude": lat,
-            "longitude": lon,
-            "installation_date": row.get("date_installation")
+        cleaned_records.append({
+            "id_compteur": record.get("id_compteur"),
+            "nom_compteur": record.get("nom_compteur"),
+            "date": record.get("date"),
+            "sum_counts": record.get("sum_counts"),
+            "latitude": float(coords.get("lat")) if coords.get("lat") is not None else None,
+            "longitude": float(coords.get("lon")) if coords.get("lon") is not None else None
         })
 
-    print("3. Envoi du lot vers le webhook Fivetran...")
-    try:
-        fivetran_res = requests.post(
-            FIVETRAN_WEBHOOK_URL,
-            headers={"Content-Type": "application/json"},
-            data=json.dumps(payload),
-            timeout=30
-        )
-        fivetran_res.raise_for_status()
-        print(f"Succès : {len(payload)} lignes transmises à Fivetran.")
-    except requests.RequestException as e:
-        print(f"Erreur lors de l'envoi à Fivetran : {e}")
-        sys.exit(1)
+    # 4. Envoi par lots (chunks) vers le Webhook Fivetran
+    webhook_url = os.environ.get("FIVETRAN_WEBHOOK_URL")
+    if not webhook_url:
+        raise ValueError("La variable d'environnement FIVETRAN_WEBHOOK_URL est manquante.")
+        
+    headers = {"Content-Type": "application/json"}
+    chunk_size = 2000
+    
+    print(f"Début de l'envoi vers Fivetran par lots de {chunk_size}...")
+    
+    for i in range(0, len(cleaned_records), chunk_size):
+        chunk = cleaned_records[i : i + chunk_size]
+        push_response = requests.post(webhook_url, json=chunk, headers=headers)
+        push_response.raise_for_status()
+        print(f"Lot {i // chunk_size + 1} envoyé (Code: {push_response.status_code})")
+
+    print("Synchronisation terminée avec succès.")
 
 if __name__ == "__main__":
-    run()
+    main()

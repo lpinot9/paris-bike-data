@@ -1,12 +1,14 @@
 name: Ingest Paris Bike Traffic
 
 on:
+  push:
+    branches:
+      - main  # Déclenche à chaque mise à jour du code
+  workflow_dispatch:  # Garde ce bouton pour pouvoir lancer le script manuellement
   schedule:
-    # Tourne chaque heure à la minute 0 (ex: 13:00, 14:00, etc.)
-    - cron: '0 * * * *'
-  # Déclenchement manuel possible depuis l'onglet Actions
-  workflow_dispatch:
-
+    # "Au minute 0, à 4 heures du matin (UTC), chaque jour"
+    # Cela correspond à 06:00 heure d'été à Paris (05:00 en heure d'hiver)
+    - cron: '0 4 * * *'
 jobs:
   run-ingestion:
     runs-on: ubuntu-latest

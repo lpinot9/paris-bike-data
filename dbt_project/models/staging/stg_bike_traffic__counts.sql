@@ -15,10 +15,10 @@ renamed_and_cast as (
         trim(id_compteur::varchar) as counter_id,
         trim(nom_compteur::varchar) as counter_name,
         
-        -- Dimensions temporelles typées
-        date::timestamp_ntz as recorded_at,
-        date_trunc('day', date::timestamp_ntz)::date as recorded_date,
-        date_part('hour', date::timestamp_ntz)::integer as recorded_hour,
+        -- Dimensions temporelles ajustées sur le fuseau de Paris
+        convert_timezone('UTC', 'Europe/Paris', date::timestamp_ntz) as recorded_at,
+        date_trunc('day', convert_timezone('UTC', 'Europe/Paris', date::timestamp_ntz))::date as recorded_date,
+        date_part('hour', convert_timezone('UTC', 'Europe/Paris', date::timestamp_ntz))::integer as recorded_hour,
         
         -- Métriques de comptage
         coalesce(sum_counts::integer, 0) as hourly_bike_count,
