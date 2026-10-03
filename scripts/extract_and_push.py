@@ -40,10 +40,12 @@ def main():
         cleaned_records.append({
             "id_compteur": record.get("id_compteur"),
             "nom_compteur": record.get("nom_compteur"),
+            "id": record.get("id"),
             "date": record.get("date"),
             "sum_counts": record.get("sum_counts"),
             "latitude": float(coords.get("lat")) if coords.get("lat") is not None else None,
-            "longitude": float(coords.get("lon")) if coords.get("lon") is not None else None
+            "longitude": float(coords.get("lon")) if coords.get("lon") is not None else None,
+            "installation_date": record.get("installation_date")
         })
 
     # 4. Envoi par lots (chunks) vers le Webhook Fivetran
