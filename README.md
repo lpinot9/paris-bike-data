@@ -12,13 +12,7 @@ Pipeline de données automatisé analysant le trafic cycliste parisien à partir
 ```text
   [API Paris Open Data]
         │
-        ▼ (Script python - Cron horaire)
-  [Webhook]
-        │
-        ▼ (Fivetran)
-  [Bucket Google Cloud temporaire contenant uniquement les données de J-1]
-        │ (Fivetran)
-        ▼
+        ▼ (Script ELT Python - Cron horaire)
   [Snowflake RAW]
         │
         ▼ (dbt Core)
