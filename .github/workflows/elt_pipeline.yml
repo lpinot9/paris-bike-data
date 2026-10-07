@@ -1,4 +1,4 @@
-name: Bike Data ELT Pipeline (dlt + dbt)
+name: Bike Data ELT Pipeline
 
 on:
   workflow_dispatch:
