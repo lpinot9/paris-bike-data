@@ -41,7 +41,7 @@ enriched_traffic as (
         hourly_bike_count,
         
         -- Traçabilité
-        fivetran_synced_at
+        dlt_load_id
 
     from staging
 

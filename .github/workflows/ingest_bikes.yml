@@ -1,14 +1,12 @@
-name: Ingest Paris Bike Traffic
+name: Post bike traffic to fivetran webhook
 
 on:
   push:
     branches:
-      - main  # Déclenche à chaque mise à jour du code
-  workflow_dispatch:  # Garde ce bouton pour pouvoir lancer le script manuellement
-  schedule:
-    # "Au minute 0, à 4 heures du matin (UTC), chaque jour"
-    # Cela correspond à 06:00 heure d'été à Paris (05:00 en heure d'hiver)
-    - cron: '23 14 * * *'
+      - main
+  workflow_dispatch:
+  #schedule:
+    #- cron: '00 06 * * *'
 jobs:
   run-ingestion:
     runs-on: ubuntu-latest

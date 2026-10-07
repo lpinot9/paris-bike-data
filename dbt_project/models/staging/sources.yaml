@@ -2,11 +2,11 @@ version: 2
 
 sources:
   - name: raw_bike_traffic
-    description: "Données brutes issues de l'API Open Data Paris, ingérées via Webhook Fivetran."
+    description: "Données brutes issues"
     database: BIKE_MOBILITY
-    schema: WEBHOOKS
+    schema: RAW_BIKE_TRAFFIC
     tables:
-      - name: FIVETRAN_BIKE_WEBHOOKS_STAGE 
+      - name: EVENT 
         description: "Enregistrements horaires bruts des compteurs vélos de la ville de Paris."
         columns:
           - name: ID_COMPTEUR

@@ -1,10 +1,11 @@
 name: dbt Transformation
 
 on:
-  workflow_dispatch:  # Permet de le lancer à la main si besoin
-  schedule:
-    # GitHub Actions utilise l'UTC. 
-    - cron: '33 15 * * *'
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Bike Data ELT Pipeline (dlt + dbt)"]
+    types:
+      - completed
 
 jobs:
   transform-dbt:

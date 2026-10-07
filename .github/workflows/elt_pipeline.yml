@@ -1,0 +1,49 @@
+name: Bike Data ELT Pipeline (dlt + dbt)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '00 01 * * *' 
+
+jobs:
+  elt-pipeline:
+    runs-on: ubuntu-latest
+    env:
+      # Secrets Snowflake réutilisés pour dlt
+      DESTINATION__SNOWFLAKE__CREDENTIALS__ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      DESTINATION__SNOWFLAKE__CREDENTIALS__USERNAME: ${{ secrets.SNOWFLAKE_USER }}
+      DESTINATION__SNOWFLAKE__CREDENTIALS__PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      DESTINATION__SNOWFLAKE__CREDENTIALS__ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+      DESTINATION__SNOWFLAKE__CREDENTIALS__WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+      DESTINATION__SNOWFLAKE__CREDENTIALS__DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+      
+      # Secrets Snowflake réutilisés pour dbt
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+      SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+      SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+      SNOWFLAKE_SCHEMA: DEV_TRANSFORMING
+      DBT_PROFILES_DIR: ./dbt_project
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install "dlt[snowflake]" requests dbt-snowflake==1.7.*
+
+      - name: Run Extraction & Ingestion with dlt
+        run: python scripts/local_extract.py
+
+      - name: Run dbt build
+        run: |
+          dbt deps --project-dir ./dbt_project
+          dbt build --project-dir ./dbt_project

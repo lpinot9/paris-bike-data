@@ -4,7 +4,7 @@
 
 with source_data as (
 
-    select * from {{ source('raw_bike_traffic', 'FIVETRAN_BIKE_WEBHOOKS_STAGE') }}
+    select * from {{ source('raw_bike_traffic', 'EVENT') }}
 
 ),
 
@@ -27,8 +27,8 @@ renamed_and_cast as (
         latitude::float as latitude,
         longitude::float as longitude,
         
-        -- Métadonnées techniques Fivetran
-        _fivetran_synced::timestamp_ntz as fivetran_synced_at
+        -- Métadonnées techniques dlt
+        _dlt_load_id::varchar as dlt_load_id
 
     from source_data
     where
@@ -40,12 +40,12 @@ renamed_and_cast as (
 
 deduplicated as (
 
-    -- Dédoublonnage sur la clé naturelle : on conserve la ligne la plus fraîchement synchronisée
+    -- Dédoublonnage sur la clé naturelle : conservation de l'extraction la plus récente
     select
         *,
         row_number() over (
             partition by counter_id, recorded_at
-            order by fivetran_synced_at desc
+            order by dlt_load_id desc
         ) as row_num
     from renamed_and_cast
 
@@ -60,6 +60,6 @@ select
     hourly_bike_count,
     latitude,
     longitude,
-    fivetran_synced_at
+    dlt_load_id
 from deduplicated
 where row_num = 1
