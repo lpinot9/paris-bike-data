@@ -12,13 +12,7 @@ Pipeline de données automatisé analysant le trafic cycliste parisien à partir
 ```text
   [API Paris Open Data]
         │
-        ▼ (Script python - Cron horaire)
-  [Webhook]
-        │
-        ▼ (Fivetran)
-  [Bucket Google Cloud temporaire contenant uniquement les données de J-1]
-        │ (Fivetran)
-        ▼
+        ▼ (Script ELT Python - Cron horaire)
   [Snowflake RAW]
         │
         ▼ (dbt Core)
@@ -53,7 +47,6 @@ L'architecture repose sur la *Modern Data Stack* avec une séparation rigoureuse
 | Couche | Outil / Technologie | Rôle & Justification |
 | :--- | :--- | :--- |
 | **Ingestion** | **GitHub Actions** | Exécution serverless d'un cron horaire interrogeant l'API REST v2.1 de Paris Open Data (0 € d'infrastructure). |
-| **Transport & CDC** | **Fivetran (Webhooks)** | Ingestion managée par micro-lots avec transit temporaire sur Google Cloud Storage (Free Tier) et chargement automatisé. |
 | **Data Warehouse** | **Snowflake (Enterprise)** | Stockage colonnaire, gestion du cycle de vie (Time Travel), isolation stricte des charges via RBAC et entrepôts dédiés (`X-Small` auto-suspendus). |
 | **Transformation** | **dbt (data build tool)** | Modélisation en couches (`staging` $\rightarrow$ `intermediate` $\rightarrow$ `marts`), tests automatisés, documentation intégrée et gestion des incrémentaux. |
 | **CI / CD** | **GitHub Actions** | Automatisation des tests de non-régression et compilation du graphe de dépendances dbt lors de chaque Pull Request. |
@@ -92,4 +85,3 @@ SNOWFLAKE_DATABASE
 
 SNOWFLAKE_SCHEMA
 
-FIVETRAN_WEBHOOK_URL
