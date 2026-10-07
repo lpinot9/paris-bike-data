@@ -4,7 +4,7 @@ on:
   workflow_dispatch:  # Permet de le lancer à la main si besoin
   schedule:
     # GitHub Actions utilise l'UTC. 
-    - cron: '33 15 * * *'
+    - cron: '00 11 * * *'
 
 jobs:
   transform-dbt:
