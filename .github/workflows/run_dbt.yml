@@ -2,15 +2,10 @@ name: dbt Transformation
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["Bike Data ELT Pipeline"]
-    types:
-      - completed
 
 jobs:
   transform-dbt:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     env:
       SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
       SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
